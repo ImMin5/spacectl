@@ -62,7 +62,9 @@ def list(resource, parameter, json_parameter, file_path, minimal_columns, all_co
     parser = None
 
     params = _parse_parameter(file_path, json_parameter, parameter)
-    params['query'] = params.get('query', {})
+
+    if not resource == "repository.Plugin":
+        params['query'] = params.get('query', {})
 
     if all_columns:
         params['query']['minimal'] = False
@@ -291,11 +293,21 @@ def _call_api(client, resource, verb, params=None, **kwargs):
         config = kwargs.get('config', {})
         metadata = _make_grpc_metadata(config)
         resource_client = getattr(client, resource)
+        print("=================")
+        print(resource_client)
+        print("=================")
+        print("verbv" + verb)
         resource_verb = getattr(resource_client, verb)
+        print("====resource_berb====")
+        print(resource_verb)
+        print("=================")
+        print(params)
         response_or_iterator = resource_verb(
             params,
             metadata=metadata
         )
+        print("response_or_iterator")
+        print(response_or_iterator)
         if isinstance(response_or_iterator, Exception):
             raise response_or_iterator
         elif isinstance(response_or_iterator, types.GeneratorType):
@@ -304,6 +316,8 @@ def _call_api(client, resource, verb, params=None, **kwargs):
         else:
             yield _change_message(response_or_iterator)
     except ERROR_BASE as e:
+        print("=================")
+        print(e.message, e.error_code, e.meta)
         if e.error_code == 'ERROR_AUTHENTICATE_FAILURE':
             raise Exception('The api_key is not set or incorrect. (Use "spacectl config init")')
         else:
